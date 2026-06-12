@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ip-echo",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+  // favicon / icon 等靜態檔；非資源路徑照常進 Worker
+  "assets": { "directory": "./public" },
+  "routes": [{ "pattern": "ip.kvcc.me", "custom_domain": true }]
+}
