@@ -17,6 +17,7 @@ A zero-storage connection-info echo tool on Cloudflare Workers. One page shows y
 - **Full header echo**: Every request header listed (HTML-escaped — reflected input is attacker-controlled), collapsible in the UI.
 - **Zero storage**: Stateless Worker; data comes from `request.cf` and headers of the current request only.
 - **Liquid Glass UI**: Frosted-glass cards on an animated mesh background, light / dark / auto theme with pre-paint anti-flash.
+- **Multilingual (17 languages)**: UI labels in English, 繁體中文, 简体中文, 日本語, 한국어, Español, Français, Deutsch, Italiano, Português, Русский, العربية (RTL), Türkçe, हिन्दी, Bahasa Indonesia, Tiếng Việt, ไทย. Defaults to the device locale (`Accept-Language` negotiation, server-rendered — no flash), switchable anytime (saved to `localStorage`). Data values (IP / geo / headers) are never translated and stay LTR.
 
 ### 🛠 Tech
 
@@ -41,6 +42,7 @@ A zero-storage connection-info echo tool on Cloudflare Workers. One page shows y
 - **完整 header 回顯**：列出每一個 request header（全部 HTML 跳脫——反射內容是請求方可控的），UI 可摺疊。
 - **零儲存**：無狀態 Worker，資料只來自 `request.cf` 與當次請求的 headers。
 - **Liquid Glass UI**：霜化玻璃卡片＋流動 mesh 背景，淺色／深色／自動主題含 pre-paint 防閃爍。
+- **多語系（17 種）**：介面支援 English／繁體中文／简体中文／日本語／한국어／Español／Français／Deutsch／Italiano／Português／Русский／العربية（RTL）／Türkçe／हिन्दी／Bahasa Indonesia／Tiếng Việt／ไทย。預設依裝置語系（`Accept-Language` 內容協商、server 端直出不閃），可隨時手動切換（記 `localStorage`）。資料值（IP／地理／headers）不翻譯、保持 LTR。
 
 ### 🛠 技術
 

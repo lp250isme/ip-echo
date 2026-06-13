@@ -5,6 +5,10 @@
    - /ip    → 純文字 IP
    - /json  → 完整 JSON（CORS *，其他 app 可直接 fetch）
    - 其他   → HTML 頁（值在 server 端渲染進模板）
+
+   i18n：HTML 頁的「介面標籤」支援世界主流語系。預設依裝置語系
+   （Accept-Language 內容協商）server 端直出，使用者可在右上角自行切換
+   （存 localStorage，前端即時換不重整）。資料值（IP/地理/headers/UA）不翻譯。
    ============================================================ */
 
 const esc = s =>
@@ -25,6 +29,398 @@ const flag = cc =>
     cc && /^[A-Z]{2}$/.test(cc)
         ? String.fromCodePoint(...[...cc].map(c => 0x1f1a5 + c.charCodeAt(0)))
         : '';
+
+/* ---------- i18n 字典（只翻介面標籤；資料值不翻） ---------- */
+
+const I18N = {
+    en: {
+        tagline: 'Your connection info',
+        intro: 'Your IP, location, ASN, TLS and request headers — all on one page. Live from this request, never logged or stored.',
+        theme: 'Toggle theme',
+        language: 'Language',
+        copy: 'Copy',
+        copied: 'Copied ✓',
+        connection: 'Connection',
+        timezone: 'Timezone',
+        coords: 'Coordinates',
+        node: 'Edge node',
+        protocol: 'Protocol',
+        cipher: 'Cipher',
+        device: 'Device',
+        headers: 'Request headers',
+        count: '{n} items',
+        apiNote: '/json sends CORS (*), so any page can fetch it directly; CLI tools hitting the root get a plain-text IP.',
+        noLogs: 'No logs, no storage',
+    },
+    'zh-Hant': {
+        tagline: '你的連線資訊',
+        intro: 'IP、地理位置、ASN、TLS、request headers 一頁看清楚。資料即時來自這一次請求，不記錄、不儲存。',
+        theme: '切換主題',
+        language: '語言',
+        copy: '複製',
+        copied: '已複製 ✓',
+        connection: '連線',
+        timezone: '時區',
+        coords: '座標',
+        node: '節點',
+        protocol: '協定',
+        cipher: '加密套件',
+        device: '裝置',
+        headers: 'Request headers',
+        count: '{n} 個',
+        apiNote: '/json 開了 CORS（*），任何網頁都能直接 fetch；CLI 打根路徑會直接回純文字 IP。',
+        noLogs: '零儲存零記錄',
+    },
+    'zh-Hans': {
+        tagline: '你的连接信息',
+        intro: 'IP、地理位置、ASN、TLS、request headers 一页看清楚。数据实时来自这次请求，不记录、不存储。',
+        theme: '切换主题',
+        language: '语言',
+        copy: '复制',
+        copied: '已复制 ✓',
+        connection: '连接',
+        timezone: '时区',
+        coords: '坐标',
+        node: '节点',
+        protocol: '协议',
+        cipher: '加密套件',
+        device: '设备',
+        headers: '请求头',
+        count: '{n} 个',
+        apiNote: '/json 开启了 CORS（*），任何网页都能直接 fetch；CLI 访问根路径会直接返回纯文本 IP。',
+        noLogs: '不记录不存储',
+    },
+    ja: {
+        tagline: '接続情報',
+        intro: 'IP、位置情報、ASN、TLS、リクエストヘッダーを1ページで確認。今回のリクエストからリアルタイムに取得し、記録も保存もしません。',
+        theme: 'テーマ切替',
+        language: '言語',
+        copy: 'コピー',
+        copied: 'コピー済み ✓',
+        connection: '接続',
+        timezone: 'タイムゾーン',
+        coords: '座標',
+        node: 'エッジノード',
+        protocol: 'プロトコル',
+        cipher: '暗号スイート',
+        device: 'デバイス',
+        headers: 'リクエストヘッダー',
+        count: '{n} 件',
+        apiNote: '/json は CORS（*）を許可しているため、どのページからでも直接 fetch できます。CLI でルートにアクセスするとプレーンテキストの IP を返します。',
+        noLogs: '記録なし・保存なし',
+    },
+    ko: {
+        tagline: '연결 정보',
+        intro: 'IP, 위치, ASN, TLS, 요청 헤더를 한 페이지에서 확인하세요. 이번 요청에서 실시간으로 가져오며 기록하거나 저장하지 않습니다.',
+        theme: '테마 전환',
+        language: '언어',
+        copy: '복사',
+        copied: '복사됨 ✓',
+        connection: '연결',
+        timezone: '시간대',
+        coords: '좌표',
+        node: '엣지 노드',
+        protocol: '프로토콜',
+        cipher: '암호화 스위트',
+        device: '기기',
+        headers: '요청 헤더',
+        count: '{n}개',
+        apiNote: '/json 은 CORS(*)를 허용하므로 어떤 페이지에서도 바로 fetch 할 수 있습니다. CLI 로 루트에 접속하면 일반 텍스트 IP 를 반환합니다.',
+        noLogs: '기록 없음, 저장 없음',
+    },
+    es: {
+        tagline: 'Tu información de conexión',
+        intro: 'Tu IP, ubicación, ASN, TLS y cabeceras de la petición en una sola página. En tiempo real desde esta petición, sin registros ni almacenamiento.',
+        theme: 'Cambiar tema',
+        language: 'Idioma',
+        copy: 'Copiar',
+        copied: 'Copiado ✓',
+        connection: 'Conexión',
+        timezone: 'Zona horaria',
+        coords: 'Coordenadas',
+        node: 'Nodo edge',
+        protocol: 'Protocolo',
+        cipher: 'Cifrado',
+        device: 'Dispositivo',
+        headers: 'Cabeceras de la petición',
+        count: '{n} elementos',
+        apiNote: '/json envía CORS (*), así que cualquier página puede hacer fetch directamente; las herramientas CLI en la raíz reciben la IP en texto plano.',
+        noLogs: 'Sin registros ni almacenamiento',
+    },
+    fr: {
+        tagline: 'Vos infos de connexion',
+        intro: 'Votre IP, localisation, ASN, TLS et en-têtes de requête sur une seule page. En direct de cette requête, sans journal ni stockage.',
+        theme: 'Changer de thème',
+        language: 'Langue',
+        copy: 'Copier',
+        copied: 'Copié ✓',
+        connection: 'Connexion',
+        timezone: 'Fuseau horaire',
+        coords: 'Coordonnées',
+        node: 'Nœud edge',
+        protocol: 'Protocole',
+        cipher: 'Chiffrement',
+        device: 'Appareil',
+        headers: 'En-têtes de requête',
+        count: '{n} éléments',
+        apiNote: "/json envoie CORS (*), donc n'importe quelle page peut le récupérer directement ; les outils CLI sur la racine reçoivent l'IP en texte brut.",
+        noLogs: 'Aucun journal, aucun stockage',
+    },
+    de: {
+        tagline: 'Deine Verbindungsinfos',
+        intro: 'Deine IP, Standort, ASN, TLS und Request-Header auf einer Seite. Live aus dieser Anfrage, ohne Protokoll und ohne Speicherung.',
+        theme: 'Thema wechseln',
+        language: 'Sprache',
+        copy: 'Kopieren',
+        copied: 'Kopiert ✓',
+        connection: 'Verbindung',
+        timezone: 'Zeitzone',
+        coords: 'Koordinaten',
+        node: 'Edge-Knoten',
+        protocol: 'Protokoll',
+        cipher: 'Verschlüsselung',
+        device: 'Gerät',
+        headers: 'Request-Header',
+        count: '{n} Einträge',
+        apiNote: '/json sendet CORS (*), sodass jede Seite es direkt abrufen kann; CLI-Tools auf dem Stammpfad erhalten die IP als Klartext.',
+        noLogs: 'Keine Protokolle, keine Speicherung',
+    },
+    it: {
+        tagline: 'Le tue info di connessione',
+        intro: "Il tuo IP, posizione, ASN, TLS e header della richiesta in un'unica pagina. In tempo reale da questa richiesta, senza log né archiviazione.",
+        theme: 'Cambia tema',
+        language: 'Lingua',
+        copy: 'Copia',
+        copied: 'Copiato ✓',
+        connection: 'Connessione',
+        timezone: 'Fuso orario',
+        coords: 'Coordinate',
+        node: 'Nodo edge',
+        protocol: 'Protocollo',
+        cipher: 'Cifratura',
+        device: 'Dispositivo',
+        headers: 'Header della richiesta',
+        count: '{n} elementi',
+        apiNote: "/json invia CORS (*), quindi qualsiasi pagina può fare fetch direttamente; gli strumenti CLI sulla radice ricevono l'IP in testo semplice.",
+        noLogs: 'Nessun log, nessuna archiviazione',
+    },
+    pt: {
+        tagline: 'Suas informações de conexão',
+        intro: 'Seu IP, localização, ASN, TLS e cabeçalhos da requisição em uma só página. Em tempo real desta requisição, sem registros nem armazenamento.',
+        theme: 'Alternar tema',
+        language: 'Idioma',
+        copy: 'Copiar',
+        copied: 'Copiado ✓',
+        connection: 'Conexão',
+        timezone: 'Fuso horário',
+        coords: 'Coordenadas',
+        node: 'Nó de borda',
+        protocol: 'Protocolo',
+        cipher: 'Cifra',
+        device: 'Dispositivo',
+        headers: 'Cabeçalhos da requisição',
+        count: '{n} itens',
+        apiNote: '/json envia CORS (*), então qualquer página pode fazer fetch diretamente; ferramentas CLI na raiz recebem o IP em texto puro.',
+        noLogs: 'Sem registros, sem armazenamento',
+    },
+    ru: {
+        tagline: 'Сведения о подключении',
+        intro: 'Ваш IP, местоположение, ASN, TLS и заголовки запроса на одной странице. В реальном времени из этого запроса, без журналов и хранения.',
+        theme: 'Сменить тему',
+        language: 'Язык',
+        copy: 'Копировать',
+        copied: 'Скопировано ✓',
+        connection: 'Подключение',
+        timezone: 'Часовой пояс',
+        coords: 'Координаты',
+        node: 'Пограничный узел',
+        protocol: 'Протокол',
+        cipher: 'Шифр',
+        device: 'Устройство',
+        headers: 'Заголовки запроса',
+        count: '{n} шт.',
+        apiNote: '/json отправляет CORS (*), поэтому любая страница может получить его напрямую; CLI-инструменты по корневому пути получают IP обычным текстом.',
+        noLogs: 'Без журналов и хранения',
+    },
+    ar: {
+        tagline: 'معلومات اتصالك',
+        intro: 'عنوان IP وموقعك وASN وTLS وترويسات الطلب في صفحة واحدة. مباشرة من هذا الطلب، دون تسجيل أو تخزين.',
+        theme: 'تبديل السمة',
+        language: 'اللغة',
+        copy: 'نسخ',
+        copied: 'تم النسخ ✓',
+        connection: 'الاتصال',
+        timezone: 'المنطقة الزمنية',
+        coords: 'الإحداثيات',
+        node: 'عقدة الحافة',
+        protocol: 'البروتوكول',
+        cipher: 'التشفير',
+        device: 'الجهاز',
+        headers: 'ترويسات الطلب',
+        count: '{n} عنصرًا',
+        apiNote: '‏/json يرسل CORS (*)، لذا يمكن لأي صفحة جلبه مباشرة؛ وأدوات سطر الأوامر على المسار الجذري تحصل على IP كنص عادي.',
+        noLogs: 'بدون تسجيل أو تخزين',
+    },
+    tr: {
+        tagline: 'Bağlantı bilgileriniz',
+        intro: "IP'niz, konumunuz, ASN, TLS ve istek başlıkları tek sayfada. Bu istekten gerçek zamanlı, kayıt ve depolama olmadan.",
+        theme: 'Temayı değiştir',
+        language: 'Dil',
+        copy: 'Kopyala',
+        copied: 'Kopyalandı ✓',
+        connection: 'Bağlantı',
+        timezone: 'Saat dilimi',
+        coords: 'Koordinatlar',
+        node: 'Edge düğümü',
+        protocol: 'Protokol',
+        cipher: 'Şifre',
+        device: 'Cihaz',
+        headers: 'İstek başlıkları',
+        count: '{n} öğe',
+        apiNote: '/json CORS (*) gönderir, böylece herhangi bir sayfa doğrudan fetch edebilir; köke erişen CLI araçları düz metin IP alır.',
+        noLogs: 'Kayıt yok, depolama yok',
+    },
+    hi: {
+        tagline: 'आपकी कनेक्शन जानकारी',
+        intro: 'आपका IP, स्थान, ASN, TLS और रिक्वेस्ट हेडर एक ही पेज पर। इसी रिक्वेस्ट से रियल-टाइम, बिना लॉग और बिना स्टोरेज।',
+        theme: 'थीम बदलें',
+        language: 'भाषा',
+        copy: 'कॉपी',
+        copied: 'कॉपी हो गया ✓',
+        connection: 'कनेक्शन',
+        timezone: 'टाइम ज़ोन',
+        coords: 'निर्देशांक',
+        node: 'एज नोड',
+        protocol: 'प्रोटोकॉल',
+        cipher: 'सिफर',
+        device: 'डिवाइस',
+        headers: 'रिक्वेस्ट हेडर',
+        count: '{n} आइटम',
+        apiNote: '/json CORS (*) भेजता है, इसलिए कोई भी पेज इसे सीधे fetch कर सकता है; रूट पर CLI टूल को सादा-टेक्स्ट IP मिलता है।',
+        noLogs: 'कोई लॉग नहीं, कोई स्टोरेज नहीं',
+    },
+    id: {
+        tagline: 'Info koneksi Anda',
+        intro: 'IP, lokasi, ASN, TLS, dan header permintaan Anda dalam satu halaman. Real-time dari permintaan ini, tanpa log dan tanpa penyimpanan.',
+        theme: 'Ganti tema',
+        language: 'Bahasa',
+        copy: 'Salin',
+        copied: 'Tersalin ✓',
+        connection: 'Koneksi',
+        timezone: 'Zona waktu',
+        coords: 'Koordinat',
+        node: 'Node edge',
+        protocol: 'Protokol',
+        cipher: 'Cipher',
+        device: 'Perangkat',
+        headers: 'Header permintaan',
+        count: '{n} item',
+        apiNote: '/json mengirim CORS (*), jadi halaman mana pun bisa mem-fetch langsung; alat CLI di root mendapat IP dalam teks biasa.',
+        noLogs: 'Tanpa log, tanpa penyimpanan',
+    },
+    vi: {
+        tagline: 'Thông tin kết nối của bạn',
+        intro: 'IP, vị trí, ASN, TLS và header yêu cầu của bạn trên một trang. Trực tiếp từ yêu cầu này, không ghi log, không lưu trữ.',
+        theme: 'Đổi giao diện',
+        language: 'Ngôn ngữ',
+        copy: 'Sao chép',
+        copied: 'Đã sao chép ✓',
+        connection: 'Kết nối',
+        timezone: 'Múi giờ',
+        coords: 'Tọa độ',
+        node: 'Nút edge',
+        protocol: 'Giao thức',
+        cipher: 'Bộ mã hóa',
+        device: 'Thiết bị',
+        headers: 'Header yêu cầu',
+        count: '{n} mục',
+        apiNote: '/json gửi CORS (*), nên mọi trang đều có thể fetch trực tiếp; công cụ CLI truy cập gốc sẽ nhận IP dạng văn bản thuần.',
+        noLogs: 'Không log, không lưu trữ',
+    },
+    th: {
+        tagline: 'ข้อมูลการเชื่อมต่อของคุณ',
+        intro: 'IP ตำแหน่ง ASN TLS และ request headers ของคุณในหน้าเดียว เรียลไทม์จากคำขอนี้ ไม่บันทึกและไม่จัดเก็บ',
+        theme: 'สลับธีม',
+        language: 'ภาษา',
+        copy: 'คัดลอก',
+        copied: 'คัดลอกแล้ว ✓',
+        connection: 'การเชื่อมต่อ',
+        timezone: 'เขตเวลา',
+        coords: 'พิกัด',
+        node: 'โหนด edge',
+        protocol: 'โปรโตคอล',
+        cipher: 'การเข้ารหัส',
+        device: 'อุปกรณ์',
+        headers: 'Request headers',
+        count: '{n} รายการ',
+        apiNote: '/json เปิด CORS (*) ทุกหน้าจึง fetch ได้โดยตรง; เครื่องมือ CLI ที่เรียก root จะได้ IP เป็นข้อความล้วน',
+        noLogs: 'ไม่บันทึก ไม่จัดเก็บ',
+    },
+};
+
+/** 語言選單顯示順序 + 各語系自稱（autonym），讓使用者一眼找到自己的語言 */
+const LANGS = [
+    ['en', 'English'],
+    ['zh-Hant', '繁體中文'],
+    ['zh-Hans', '简体中文'],
+    ['ja', '日本語'],
+    ['ko', '한국어'],
+    ['es', 'Español'],
+    ['fr', 'Français'],
+    ['de', 'Deutsch'],
+    ['it', 'Italiano'],
+    ['pt', 'Português'],
+    ['ru', 'Русский'],
+    ['ar', 'العربية'],
+    ['tr', 'Türkçe'],
+    ['hi', 'हिन्दी'],
+    ['id', 'Bahasa Indonesia'],
+    ['vi', 'Tiếng Việt'],
+    ['th', 'ไทย'],
+];
+
+const RTL_LANGS = ['ar'];
+const DEFAULT_LANG = 'en';
+
+/** 單一語言標籤 → 支援的語系代碼（含中文簡繁判斷、主語言子標籤回退）；無對應回 null */
+function matchTag(tag) {
+    const t = tag.toLowerCase();
+    if (t === 'zh-hant' || t.startsWith('zh-hant-') || t === 'zh-tw' || t === 'zh-hk' || t === 'zh-mo')
+        return 'zh-Hant';
+    if (t === 'zh-hans' || t.startsWith('zh-hans-') || t === 'zh-cn' || t === 'zh-sg' || t === 'zh-my' || t === 'zh')
+        return 'zh-Hans';
+    if (t.startsWith('zh')) return 'zh-Hant';
+    const base = t.split('-')[0];
+    const map = {
+        en: 'en', ja: 'ja', ko: 'ko', es: 'es', fr: 'fr', de: 'de', it: 'it',
+        pt: 'pt', ru: 'ru', ar: 'ar', tr: 'tr', hi: 'hi', vi: 'vi', th: 'th',
+        id: 'id', in: 'id', // 'in' 是 Indonesian 的舊代碼
+    };
+    return map[base] || null;
+}
+
+/** Accept-Language → 最佳支援語系（依 q 權重排序），全不中回 DEFAULT_LANG */
+function pickLang(acceptLang) {
+    if (!acceptLang) return DEFAULT_LANG;
+    const tags = acceptLang
+        .split(',')
+        .map(part => {
+            const [tag, ...params] = part.trim().split(';');
+            let q = 1;
+            for (const p of params) {
+                const m = p.trim().match(/^q=([\d.]+)$/);
+                if (m) q = parseFloat(m[1]);
+            }
+            return { tag: (tag || '').trim(), q };
+        })
+        .filter(t => t.tag)
+        .sort((a, b) => b.q - a.q);
+    for (const { tag } of tags) {
+        const hit = matchTag(tag);
+        if (hit) return hit;
+    }
+    return DEFAULT_LANG;
+}
 
 function collect(request) {
     const cf = request.cf || {};
@@ -94,50 +490,69 @@ export default {
             });
         }
 
-        return new Response(page(d, request.headers), {
+        const lang = pickLang(request.headers.get('accept-language'));
+        return new Response(page(d, request.headers, lang), {
             headers: {
                 'content-type': 'text/html; charset=utf-8',
+                'content-language': lang,
                 'cache-control': 'no-store',
+                vary: 'Accept-Language',
             },
         });
     },
 };
 
-/* ---------- HTML 模板（值全部 esc 過：headers 是請求方可控的反射內容） ---------- */
+/* ---------- HTML 模板（值全部 esc 過：headers 是請求方可控的反射內容） ----------
+   介面標籤帶 data-i18n（前端切語言時即時換）；資料值不帶、不翻。 */
 
-const row = (label, value, mono = true) =>
+const row = (key, label, value, mono = true) =>
     value
-        ? `<div class="row"><dt>${label}</dt><dd${mono ? ' class="mono"' : ''}>${esc(value)}</dd></div>`
+        ? `<div class="row"><dt${key ? ` data-i18n="${key}"` : ''}>${esc(label)}</dt><dd${mono ? ' class="mono"' : ''}>${esc(value)}</dd></div>`
         : '';
 
-function page(d, headers) {
-    const headerRows = [...headers]
-        .sort(([a], [b]) => a.localeCompare(b))
+function page(d, headers, lang) {
+    const t = I18N[lang] || I18N[DEFAULT_LANG];
+    const rtl = RTL_LANGS.includes(lang);
+
+    const headerEntries = [...headers].sort(([a], [b]) => a.localeCompare(b));
+    const headerRows = headerEntries
         .map(
             ([k, v]) =>
                 `<div class="row"><dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd></div>`
         )
         .join('');
+    const headerCount = headerEntries.length;
 
     const place = [d.city, d.region, d.country && `${d.country} ${flag(d.country)}`]
         .filter(Boolean)
         .join(' · ');
 
+    const langOptions = LANGS.map(
+        ([code, name]) =>
+            `<option value="${code}"${code === lang ? ' selected' : ''}>${esc(name)}</option>`
+    ).join('');
+
     return `<!doctype html>
-<html lang="zh-Hant">
+<html lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ip.kvcc.me — 你的連線資訊</title>
-<meta name="description" content="IP / 地理 / ASN / TLS / headers 回顯小工具，零儲存零記錄。">
+<title>ip.kvcc.me — ${esc(t.tagline)}</title>
+<meta name="description" content="${esc(t.intro)}">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/icon.png" type="image/png" media="(prefers-color-scheme: light)">
 <link rel="icon" href="/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#f2f2f7">
 <script>
-/* pre-paint 防主題閃爍 */
-(function(){var p=localStorage.getItem('ip-theme')||'auto';var t=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=t;})();
+/* pre-paint：套主題 + 套已選語言的 lang/dir（減少切過非裝置語系時的版面閃動） */
+(function(){
+  var p=localStorage.getItem('ip-theme')||'auto';
+  var t=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;
+  document.documentElement.dataset.theme=t;
+  var l=localStorage.getItem('ip-lang');
+  if(l){document.documentElement.lang=l;document.documentElement.dir=(l==='ar')?'rtl':'ltr';}
+})();
 </script>
 <style>
 :root{
@@ -173,14 +588,21 @@ body{
 }
 @keyframes gradientBG{0%{background-position:0% 0%}100%{background-position:100% 100%}}
 .page{max-width:560px;margin:0 auto;padding:20px 20px 40px;padding-top:calc(20px + env(safe-area-inset-top))}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
-.topbar img{width:32px;height:32px;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.1);user-select:none}
-.icon-btn{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:none;border-radius:9999px;padding:0;
-  color:var(--label);cursor:pointer;background:var(--panel);border:1px solid var(--panel-border);
-  backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);
-  transition:transform .15s ease}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+.topbar img{width:32px;height:32px;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.1);user-select:none;flex-shrink:0}
+.ctrls{display:flex;align-items:center;gap:10px}
+.glass-ctl{color:var(--label);background:var(--panel);border:1px solid var(--panel-border);
+  backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5)}
+.icon-btn{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9999px;padding:0;
+  cursor:pointer;transition:transform .15s ease}
 .icon-btn:active{transform:scale(.92)}
 .icon-btn svg{width:19px;height:19px}
+.lang-wrap{position:relative;display:flex;align-items:center;gap:6px;height:40px;padding:0 9px 0 12px;border-radius:9999px}
+.lang-wrap .globe{width:16px;height:16px;color:var(--label-2);flex-shrink:0;pointer-events:none}
+.lang-wrap .chev-sm{width:13px;height:13px;color:var(--label-3);flex-shrink:0;pointer-events:none}
+.lang-wrap select{appearance:none;-webkit-appearance:none;border:none;background:transparent;color:var(--label);
+  font-family:var(--font-ui);font-size:14px;font-weight:600;line-height:40px;height:40px;padding:0;margin:0;
+  cursor:pointer;outline:none;max-width:124px;text-overflow:ellipsis}
 .hero h1{margin:0 0 10px;font-size:28px;font-weight:700;letter-spacing:-.02em}
 .hero p{margin:0;font-size:15px;line-height:1.65;color:var(--label-2)}
 .stack{display:flex;flex-direction:column;gap:14px;margin-top:24px}
@@ -191,7 +613,7 @@ body{
 .panel-title .meta{flex:1;text-align:right;font-size:13px;font-weight:600;color:var(--label-2)}
 .ip-display{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .ip-value{flex:1;min-width:0;font-family:var(--font-mono);font-size:clamp(20px,6vw,30px);font-weight:700;
-  letter-spacing:-.01em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+  letter-spacing:-.01em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .ip-place{margin:8px 0 0;font-size:14px;color:var(--label-2)}
 .copy-btn{border:none;border-radius:9999px;min-height:36px;padding:0 16px;font-family:var(--font-ui);
   font-size:14px;font-weight:600;color:var(--tint);cursor:pointer;white-space:nowrap;
@@ -200,9 +622,9 @@ body{
 dl{margin:0;display:flex;flex-direction:column;gap:2px}
 .row{display:flex;align-items:baseline;gap:14px;padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--label-3) 26%,transparent)}
 .row:last-child{border-bottom:none}
-dt{flex-shrink:0;width:104px;font-size:13px;font-weight:600;color:var(--label-2)}
+dt{flex-shrink:0;width:108px;font-size:13px;font-weight:600;color:var(--label-2)}
 dd{flex:1;margin:0;font-size:14.5px;font-weight:500;overflow-wrap:anywhere}
-dd.mono{font-family:var(--font-mono);font-size:13.5px;font-variant-numeric:tabular-nums}
+dd.mono{font-family:var(--font-mono);font-size:13.5px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 details{margin:0}
 details summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
   font-size:17px;font-weight:700;letter-spacing:-.01em}
@@ -210,10 +632,12 @@ details summary::-webkit-details-marker{display:none}
 details summary .meta{flex:1;text-align:right;font-size:13px;font-weight:600;color:var(--label-2)}
 details summary .chev{width:16px;height:16px;color:var(--label-3);transform:rotate(-90deg);transition:transform .2s ease}
 details[open] summary .chev{transform:rotate(0)}
+[dir="rtl"] details summary .chev{transform:rotate(90deg)}
+[dir="rtl"] details[open] summary .chev{transform:rotate(0)}
 details[open] summary{margin-bottom:12px}
 .api-line{display:flex;align-items:center;gap:8px;margin-top:8px}
 .api-line code{flex:1;min-width:0;display:block;padding:10px 14px;border-radius:14px;background:var(--fill);
-  font-family:var(--font-mono);font-size:13px;overflow-wrap:anywhere}
+  font-family:var(--font-mono);font-size:13px;overflow-wrap:anywhere;direction:ltr;unicode-bidi:isolate}
 .api-note{margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--label-2)}
 footer{margin-top:36px;text-align:center;font-size:13px;color:var(--label-3)}
 footer a{color:var(--label-2);text-decoration:none}
@@ -221,7 +645,7 @@ footer a:hover{color:var(--tint)}
 @keyframes fade-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .fade{animation:fade-in .5s var(--ease-out) both}
 ::selection{background:color-mix(in srgb,var(--tint) 28%,transparent)}
-a:focus-visible,button:focus-visible,summary:focus-visible{outline:none;
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:none;
   box-shadow:0 0 0 2px var(--bg),0 0 0 4px color-mix(in srgb,var(--tint) 70%,transparent)}
 @media (prefers-reduced-motion:reduce){
   body{animation:none}
@@ -235,50 +659,57 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:none;
 <main class="page">
   <header class="topbar fade">
     <img id="appIcon" src="/icon.png" alt="ip.kvcc.me">
-    <button class="icon-btn" id="themeBtn" aria-label="切換主題"></button>
+    <div class="ctrls">
+      <div class="lang-wrap glass-ctl">
+        <svg class="globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+        <select id="langSel" data-i18n-aria="language" aria-label="${esc(t.language)}">${langOptions}</select>
+        <svg class="chev-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <button class="icon-btn glass-ctl" id="themeBtn" data-i18n-aria="theme" aria-label="${esc(t.theme)}"></button>
+    </div>
   </header>
 
   <section class="hero fade">
-    <h1>你的連線資訊</h1>
-    <p>IP、地理位置、ASN、TLS、request headers 一頁看清楚。資料即時來自這一次請求，不記錄、不儲存。</p>
+    <h1 data-i18n="tagline">${esc(t.tagline)}</h1>
+    <p data-i18n="intro">${esc(t.intro)}</p>
   </section>
 
   <section class="stack">
     <div class="panel fade">
       <div class="ip-display">
         <span class="ip-value" id="ipValue">${esc(d.ip)}</span>
-        <button class="copy-btn" data-copy="${esc(d.ip)}"><span>複製</span></button>
+        <button class="copy-btn" data-copy="${esc(d.ip)}"><span data-i18n="copy">${esc(t.copy)}</span></button>
       </div>
       ${place ? `<p class="ip-place">${esc(place)}</p>` : ''}
     </div>
 
     <div class="panel fade">
-      <h2 class="panel-title">連線</h2>
+      <h2 class="panel-title" data-i18n="connection">${esc(t.connection)}</h2>
       <dl>
-        ${row('時區', d.timezone)}
-        ${row('座標', d.latitude && d.longitude ? `${d.latitude}, ${d.longitude}` : '')}
-        ${row('ASN', d.asn ? `AS${d.asn}` : '')}
-        ${row('ISP', d.asOrganization, false)}
-        ${row('節點', d.colo)}
-        ${row('協定', d.httpProtocol)}
-        ${row('TLS', d.tlsVersion)}
-        ${row('加密套件', d.tlsCipher)}
+        ${row('timezone', t.timezone, d.timezone)}
+        ${row('coords', t.coords, d.latitude && d.longitude ? `${d.latitude}, ${d.longitude}` : '')}
+        ${row('', 'ASN', d.asn ? `AS${d.asn}` : '')}
+        ${row('', 'ISP', d.asOrganization, false)}
+        ${row('node', t.node, d.colo)}
+        ${row('protocol', t.protocol, d.httpProtocol)}
+        ${row('', 'TLS', d.tlsVersion)}
+        ${row('cipher', t.cipher, d.tlsCipher)}
       </dl>
     </div>
 
     <div class="panel fade">
-      <h2 class="panel-title">裝置</h2>
+      <h2 class="panel-title" data-i18n="device">${esc(t.device)}</h2>
       <dl>
-        ${row('User-Agent', d.userAgent)}
-        ${row('語言', d.language)}
+        ${row('', 'User-Agent', d.userAgent)}
+        ${row('language', t.language, d.language)}
       </dl>
     </div>
 
     <div class="panel fade">
       <details>
         <summary>
-          Request headers
-          <span class="meta">${[...headers].length} 個</span>
+          <span data-i18n="headers">${esc(t.headers)}</span>
+          <span class="meta" data-i18n="count" data-n="${headerCount}">${esc(t.count.replace('{n}', String(headerCount)))}</span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </summary>
         <dl>${headerRows}</dl>
@@ -287,20 +718,57 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:none;
 
     <div class="panel fade">
       <h2 class="panel-title">API</h2>
-      <div class="api-line"><code>curl ip.kvcc.me</code><button class="copy-btn" data-copy="curl ip.kvcc.me"><span>複製</span></button></div>
-      <div class="api-line"><code>curl ip.kvcc.me/json</code><button class="copy-btn" data-copy="curl ip.kvcc.me/json"><span>複製</span></button></div>
-      <p class="api-note">/json 開了 CORS（<code>*</code>），任何網頁都能直接 fetch；CLI 打根路徑會直接回純文字 IP。</p>
+      <div class="api-line"><code>curl ip.kvcc.me</code><button class="copy-btn" data-copy="curl ip.kvcc.me"><span data-i18n="copy">${esc(t.copy)}</span></button></div>
+      <div class="api-line"><code>curl ip.kvcc.me/json</code><button class="copy-btn" data-copy="curl ip.kvcc.me/json"><span data-i18n="copy">${esc(t.copy)}</span></button></div>
+      <p class="api-note" data-i18n="apiNote">${esc(t.apiNote)}</p>
     </div>
   </section>
 
   <footer class="fade">
-    零儲存零記錄 ·
+    <span data-i18n="noLogs">${esc(t.noLogs)}</span> ·
     <a href="https://github.com/lp250isme/ip-echo" target="_blank" rel="noopener noreferrer">GitHub</a>
     · <a href="https://kvcc.me" rel="noopener noreferrer">more by kv</a>
   </footer>
 </main>
 
 <script>
+/* ---------- i18n（介面標籤即時切換；資料值不動） ---------- */
+const I18N = ${JSON.stringify(I18N)};
+const RTL = ${JSON.stringify(RTL_LANGS)};
+let curLang = ${JSON.stringify(lang)};
+const langSel = document.getElementById('langSel');
+
+function dict(){ return I18N[curLang] || I18N['${DEFAULT_LANG}']; }
+function applyLang(l){
+  curLang = I18N[l] ? l : '${DEFAULT_LANG}';
+  const dx = dict();
+  document.documentElement.lang = curLang;
+  document.documentElement.dir = RTL.indexOf(curLang) >= 0 ? 'rtl' : 'ltr';
+  document.title = 'ip.kvcc.me — ' + dx.tagline;
+  const desc = document.querySelector('meta[name="description"]');
+  if (desc) desc.content = dx.intro;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    const k = el.getAttribute('data-i18n');
+    let s = dx[k]; if (s == null) return;
+    const n = el.getAttribute('data-n');
+    if (n != null) s = s.replace('{n}', n);
+    el.textContent = s;
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(function(el){
+    const v = dx[el.getAttribute('data-i18n-aria')];
+    if (v != null) el.setAttribute('aria-label', v);
+  });
+}
+langSel.addEventListener('change', function(){
+  applyLang(langSel.value);
+  try { localStorage.setItem('ip-lang', langSel.value); } catch (e) {}
+});
+/* 載入時：使用者先前選過的語言覆蓋裝置預設 */
+try {
+  const stored = localStorage.getItem('ip-lang');
+  if (stored && I18N[stored] && stored !== curLang) { applyLang(stored); langSel.value = stored; }
+} catch (e) {}
+
 /* ---------- 主題三段循環（light → dark → auto） ---------- */
 const ICONS = {
   light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
@@ -332,13 +800,15 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(btn.dataset.copy); } catch { return; }
     const span = document.createElement('span');
-    span.textContent = '已複製 ✓';
+    span.setAttribute('data-i18n', 'copied');
+    span.textContent = dict().copied;
     btn.replaceChildren(span);
     btn.classList.add('done');
     clearTimeout(timer);
     timer = setTimeout(() => {
       const s = document.createElement('span');
-      s.textContent = '複製';
+      s.setAttribute('data-i18n', 'copy');
+      s.textContent = dict().copy;
       btn.replaceChildren(s);
       btn.classList.remove('done');
     }, 1600);
