@@ -639,6 +639,14 @@ details[open] summary{margin-bottom:12px}
 .api-line code{flex:1;min-width:0;display:block;padding:10px 14px;border-radius:14px;background:var(--fill);
   font-family:var(--font-mono);font-size:13px;overflow-wrap:anywhere;direction:ltr;unicode-bidi:isolate}
 .api-note{margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--label-2)}
+.map-panel{padding:6px}
+.map{position:relative;height:210px;border-radius:22px;overflow:hidden;background:var(--fill);display:grid;place-items:center}
+.map-fallback{font-size:14px;font-weight:600;color:var(--tint);text-decoration:none}
+.leaflet-container{background:var(--fill)!important;font:inherit}
+.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--panel) 82%,transparent)!important;color:var(--label-3)!important;backdrop-filter:blur(8px)}
+.leaflet-control-attribution a{color:var(--label-2)!important}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--panel)!important;color:var(--label)!important;border-bottom-color:var(--panel-border)!important}
+.leaflet-touch .leaflet-bar{border-color:var(--panel-border)!important}
 footer{margin-top:36px;text-align:center;font-size:13px;color:var(--label-3)}
 footer a{color:var(--label-2);text-decoration:none}
 footer a:hover{color:var(--tint)}
@@ -683,6 +691,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
       ${place ? `<p class="ip-place">${esc(place)}</p>` : ''}
     </div>
 
+    ${d.latitude && d.longitude ? `<div class="panel fade map-panel">
+      <div id="map" class="map" data-lat="${esc(d.latitude)}" data-lon="${esc(d.longitude)}">
+        <a class="map-fallback" href="https://www.openstreetmap.org/?mlat=${esc(d.latitude)}&amp;mlon=${esc(d.longitude)}#map=11/${esc(d.latitude)}/${esc(d.longitude)}" target="_blank" rel="noopener noreferrer">🗺 OpenStreetMap ↗</a>
+      </div>
+    </div>` : ''}
+
     <div class="panel fade">
       <h2 class="panel-title" data-i18n="connection">${esc(t.connection)}</h2>
       <dl>
@@ -716,12 +730,6 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
       </details>
     </div>
 
-    <div class="panel fade">
-      <h2 class="panel-title">API</h2>
-      <div class="api-line"><code>curl ip.kvcc.me</code><button class="copy-btn" data-copy="curl ip.kvcc.me"><span data-i18n="copy">${esc(t.copy)}</span></button></div>
-      <div class="api-line"><code>curl ip.kvcc.me/json</code><button class="copy-btn" data-copy="curl ip.kvcc.me/json"><span data-i18n="copy">${esc(t.copy)}</span></button></div>
-      <p class="api-note" data-i18n="apiNote">${esc(t.apiNote)}</p>
-    </div>
   </section>
 
   <footer class="fade">
@@ -785,6 +793,7 @@ function apply(){
   themeBtn.innerHTML = ICONS[pref];
   document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#000000' : '#f2f2f7';
   document.getElementById('appIcon').src = t === 'dark' ? '/icon-dark.png' : '/icon.png';
+  if (window.__mapTheme) window.__mapTheme();
 }
 themeBtn.addEventListener('click', () => {
   pref = ORDER[(ORDER.indexOf(pref) + 1) % ORDER.length];
@@ -814,6 +823,36 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     }, 1600);
   });
 });
+
+/* ---------- 地圖視圖（Leaflet + CARTO 主題化圖磚；無座標就沒有 #map、直接跳過。
+   載入失敗則保留 #map 內的 OpenStreetMap 退路連結。圖磚跟著淺/深色切換） ---------- */
+(function(){
+  var el = document.getElementById('map');
+  if (!el) return;
+  var lat = parseFloat(el.dataset.lat), lon = parseFloat(el.dataset.lon);
+  if (!isFinite(lat) || !isFinite(lon)) return;
+  var V = '1.9.4';
+  var css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = 'https://cdn.jsdelivr.net/npm/leaflet@' + V + '/dist/leaflet.css';
+  document.head.appendChild(css);
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/leaflet@' + V + '/dist/leaflet.js';
+  s.onload = function(){
+    var L = window.L;
+    if (!L) return; // 退路連結留著
+    el.innerHTML = '';
+    el.style.display = 'block';
+    var rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var map = L.map(el, { scrollWheelZoom:false, zoomControl:true, attributionControl:true, zoomAnimation:!rm, fadeAnimation:!rm, markerZoomAnimation:!rm }).setView([lat, lon], 11);
+    function tileUrl(){ return 'https://{s}.basemaps.cartocdn.com/' + (document.documentElement.dataset.theme === 'dark' ? 'dark_all' : 'light_all') + '/{z}/{x}/{y}{r}.png'; }
+    var layer = L.tileLayer(tileUrl(), { maxZoom:19, attribution:'© OpenStreetMap © CARTO' }).addTo(map);
+    L.circleMarker([lat, lon], { radius:8, weight:3, color:'#fff', fillColor:'#007aff', fillOpacity:1 }).addTo(map);
+    window.__mapTheme = function(){ layer.setUrl(tileUrl()); };
+    setTimeout(function(){ map.invalidateSize(); }, 60);
+  };
+  document.head.appendChild(s);
+})();
 
 /* ---------- viewport-lock（無打包器：jsDelivr 釘 SHA） ---------- */
 import('https://cdn.jsdelivr.net/gh/lp250isme/viewport-lock@d9c5a5c8c10e833827ff9bc529d93eed7786ea5c/dist/index.js')

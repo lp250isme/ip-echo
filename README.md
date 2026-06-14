@@ -18,6 +18,7 @@ A zero-storage connection-info echo tool on Cloudflare Workers. One page shows y
 - **Zero storage**: Stateless Worker; data comes from `request.cf` and headers of the current request only.
 - **Liquid Glass UI**: Frosted-glass cards on an animated mesh background, light / dark / auto theme with pre-paint anti-flash.
 - **Multilingual (17 languages)**: UI labels in English, 繁體中文, 简体中文, 日本語, 한국어, Español, Français, Deutsch, Italiano, Português, Русский, العربية (RTL), Türkçe, हिन्दी, Bahasa Indonesia, Tiếng Việt, ไทย. Defaults to the device locale (`Accept-Language` negotiation, server-rendered — no flash), switchable anytime (saved to `localStorage`). Data values (IP / geo / headers) are never translated and stay LTR.
+- **Map view**: Your approximate (city-level) location on a Leaflet + CARTO map that matches the light / dark theme; falls back to an OpenStreetMap link if tiles fail to load. Coordinates are city-level only — never your exact address.
 
 ### 🛠 Tech
 
@@ -43,6 +44,7 @@ A zero-storage connection-info echo tool on Cloudflare Workers. One page shows y
 - **零儲存**：無狀態 Worker，資料只來自 `request.cf` 與當次請求的 headers。
 - **Liquid Glass UI**：霜化玻璃卡片＋流動 mesh 背景，淺色／深色／自動主題含 pre-paint 防閃爍。
 - **多語系（17 種）**：介面支援 English／繁體中文／简体中文／日本語／한국어／Español／Français／Deutsch／Italiano／Português／Русский／العربية（RTL）／Türkçe／हिन्दी／Bahasa Indonesia／Tiếng Việt／ไทย。預設依裝置語系（`Accept-Language` 內容協商、server 端直出不閃），可隨時手動切換（記 `localStorage`）。資料值（IP／地理／headers）不翻譯、保持 LTR。
+- **地圖視圖**：用 Leaflet + CARTO 圖磚把你的大略位置（城市級）畫在地圖上，跟著淺／深色主題切換；圖磚載入失敗自動退回 OpenStreetMap 連結。座標只到城市級，不是精確地址。
 
 ### 🛠 技術
 
