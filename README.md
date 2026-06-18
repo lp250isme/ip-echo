@@ -1,4 +1,6 @@
-# ip-echo — 連線資訊回顯小工具
+<p align="center">
+  <img src="public/icon-dark.png" alt="ip-echo" width="120" height="120">
+</p># ip-echo — 連線資訊回顯小工具
 
 [English](#english) | [繁體中文](#繁體中文)
 
