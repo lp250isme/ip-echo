@@ -900,7 +900,17 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     var layer = L.tileLayer(tileUrl(), { maxZoom:19, attribution:'© OpenStreetMap © CARTO' }).addTo(map);
     L.circleMarker([lat, lon], { radius:8, weight:3, color:'#fff', fillColor:'#007aff', fillOpacity:1 }).addTo(map);
     window.__mapTheme = function(){ layer.setUrl(tileUrl()); };
-    setTimeout(function(){ map.invalidateSize(); }, 60);
+    /* 地圖在 .panel.fade 裡：0.5s translateY 進場 + backdrop-filter 會在 iOS Safari
+       建出合成圖層，Leaflet 若在動畫進行中 init，圖磚會畫進停格快照、之後不重繪
+       → 空白灰。等進場動畫結束（transform 歸零、圖層落定）再 invalidateSize，讓
+       圖磚重新落到已穩定的圖層；加 rAF + 過 0.5s 的 backstop 多重保險。桌機/Chromium
+       本來就會重繪、不受影響——這是 iOS 專屬修法（headless 驗不出，需實機）。 */
+    var fix = function(){ map.invalidateSize(); };
+    var panel = el.closest('.panel');
+    if (panel) panel.addEventListener('animationend', fix, { once:true });
+    requestAnimationFrame(fix);
+    setTimeout(fix, 120);
+    setTimeout(fix, 700);
   };
   document.head.appendChild(s);
 })();
