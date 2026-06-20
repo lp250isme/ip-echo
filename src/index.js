@@ -550,6 +550,7 @@ function page(d, headers, lang) {
   var p=localStorage.getItem('ip-theme')||'auto';
   var t=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;
   document.documentElement.dataset.theme=t;
+  document.documentElement.dataset.style=localStorage.getItem('ip-style')||'linear';
   var l=localStorage.getItem('ip-lang');
   if(l){document.documentElement.lang=l;document.documentElement.dir=(l==='ar')?'rtl':'ltr';}
 })();
@@ -576,6 +577,30 @@ function page(d, headers, lang) {
          radial-gradient(at 50% 100%,hsla(252,40%,22%,.5) 0,transparent 50%);
   color-scheme:dark;
 }
+/* ───────── Linear 風格變體（data-style="linear"，A/B 比較用） ─────────
+   tokens 照 tw-live/DESIGN.md：近黑 canvas、單一 indigo accent、hairline border、
+   扁平表面（無玻璃 blur / 無大圓角 / 無環境動畫）。滿意留哪個再砍另一套。 */
+:root[data-style="linear"]{
+  --label:#1C1D21;--label-2:#6B7280;--label-3:rgba(0,0,0,.26);
+  --bg:#FBFBFC;--tint:#5E6AD2;--green:#3aa76d;--fill:rgba(0,0,0,.05);
+  --panel:#fff;--panel-border:rgba(0,0,0,.09);
+  --mesh:radial-gradient(120% 55% at 50% -10%,rgba(94,106,210,.06) 0,transparent 60%);
+  color-scheme:light;
+}
+:root[data-style="linear"][data-theme="dark"]{
+  --label:#ECEEF1;--label-2:#8A8F98;--label-3:rgba(255,255,255,.28);
+  --bg:#08090a;--tint:#7C7DFF;--green:#3fb98a;--fill:rgba(255,255,255,.06);
+  --panel:#0e0f11;--panel-border:rgba(255,255,255,.09);
+  --mesh:radial-gradient(120% 55% at 50% -10%,rgba(124,125,255,.10) 0,transparent 60%);
+  color-scheme:dark;
+}
+:root[data-style="linear"] body{background-size:auto;animation:none}
+:root[data-style="linear"] .panel{border-radius:12px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+:root[data-style="linear"] .glass-ctl{backdrop-filter:none;-webkit-backdrop-filter:none}
+:root[data-style="linear"] .topbar img{border-radius:7px;box-shadow:none}
+:root[data-style="linear"] .panel-title{font-size:15px;letter-spacing:-.01em}
+:root[data-style="linear"] .map{border-radius:12px}
+:root[data-style="linear"] .api-line code{border-radius:8px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
 body{
@@ -673,6 +698,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
         <select id="langSel" data-i18n-aria="language" aria-label="${esc(t.language)}">${langOptions}</select>
         <svg class="chev-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
+      <button class="icon-btn glass-ctl" id="styleBtn" title="切換設計風格 Glass / Linear" aria-label="Switch design style"></button>
       <button class="icon-btn glass-ctl" id="themeBtn" data-i18n-aria="theme" aria-label="${esc(t.theme)}"></button>
     </div>
   </header>
@@ -791,8 +817,11 @@ function apply(){
   const t = pref === 'auto' ? (mq.matches ? 'dark' : 'light') : pref;
   document.documentElement.dataset.theme = t;
   themeBtn.innerHTML = ICONS[pref];
-  document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#000000' : '#f2f2f7';
-  document.getElementById('appIcon').src = t === 'dark' ? '/icon-dark.png' : '/icon.png';
+  var st = document.documentElement.dataset.style;
+  document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? (st === 'linear' ? '#08090a' : '#000000') : (st === 'linear' ? '#FBFBFC' : '#f2f2f7');
+  document.getElementById('appIcon').src = (st === 'linear')
+    ? (t === 'dark' ? '/icon-linear-dark.png' : '/icon-linear.png')
+    : (t === 'dark' ? '/icon-dark.png' : '/icon.png');
   if (window.__mapTheme) window.__mapTheme();
 }
 themeBtn.addEventListener('click', () => {
@@ -802,6 +831,28 @@ themeBtn.addEventListener('click', () => {
 });
 mq.addEventListener('change', () => { if (pref === 'auto') apply(); });
 apply();
+
+/* ───────── 設計風格切換（Glass ⇄ Linear，A/B 比較用，存 localStorage） ───────── */
+var STYLE_ICONS = {
+  glass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M3 9.5h18"/></svg>',
+  linear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M7.5 8h9M7.5 12h9M7.5 16h5"/></svg>'
+};
+var styleBtn = document.getElementById('styleBtn');
+var stylePref = localStorage.getItem('ip-style') || 'glass';
+function applyStyle(){
+  document.documentElement.dataset.style = stylePref;
+  if (styleBtn) {
+    styleBtn.innerHTML = STYLE_ICONS[stylePref] || STYLE_ICONS.glass;
+    styleBtn.title = (stylePref === 'linear' ? 'Linear' : 'Glass') + ' 風格（點擊切換）';
+  }
+  apply(); // re-assert theme-color for the active style
+}
+if (styleBtn) styleBtn.addEventListener('click', function(){
+  stylePref = stylePref === 'glass' ? 'linear' : 'glass';
+  try { localStorage.setItem('ip-style', stylePref); } catch (e) {}
+  applyStyle();
+});
+applyStyle();
 
 /* ---------- 複製（換字鈕：replaceChildren 換節點，不掛 transform/opacity 過渡） ---------- */
 document.querySelectorAll('.copy-btn').forEach(btn => {
