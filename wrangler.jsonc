@@ -3,7 +3,8 @@
   "name": "ip-echo",
   "main": "src/index.js",
   "compatibility_date": "2026-06-01",
-  // favicon / icon 等靜態檔；非資源路徑照常進 Worker
-  "assets": { "directory": "./public" },
+  // ⚠️ 不要加 wrangler "assets"：實測它會讓 request.cf 變空（連 run_worker_first:true
+  // 都救不了）→ 地理/座標全空、地圖壞掉（踩過 2026-06）。icon 改由 Worker 自己服務
+  // （src/icons.js 內嵌 base64）。
   "routes": [{ "pattern": "ip.kvcc.me", "custom_domain": true }]
 }

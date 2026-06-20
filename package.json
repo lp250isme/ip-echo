@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy && bash scripts/smoke.sh",
+    "verify": "bash scripts/smoke.sh"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

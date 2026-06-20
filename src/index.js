@@ -11,6 +11,11 @@
    （存 localStorage，前端即時換不重整）。資料值（IP/地理/headers/UA）不翻譯。
    ============================================================ */
 
+import { ICONS } from './icons.js';
+
+/** base64 → bytes（給內嵌 icon 用） */
+const b64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
 const esc = s =>
     String(s ?? '').replace(
         /[&<>"']/g,
@@ -453,6 +458,23 @@ const JSON_HEADERS = {
 export default {
     fetch(request) {
         const url = new URL(request.url);
+
+        // 本 worker 不能用 wrangler "assets"——它會讓 request.cf 變空、地圖壞掉（踩過
+        // 2026-06）。icon 改由 worker 直接服務（src/icons.js 內嵌 base64，Linear 配色）。
+        // 動態路由只有 / /ip /json；其餘命中內嵌 icon 就回，否則導回 /。
+        if (url.pathname !== '/' && url.pathname !== '/ip' && url.pathname !== '/json') {
+            const icon = ICONS[url.pathname];
+            if (icon) {
+                return new Response(b64ToBytes(icon.b64), {
+                    headers: {
+                        'content-type': icon.type,
+                        'cache-control': 'public, max-age=31536000, immutable',
+                    },
+                });
+            }
+            return Response.redirect(url.origin + '/', 302);
+        }
+
         const d = collect(request);
 
         if (url.pathname === '/ip') {
@@ -473,10 +495,6 @@ export default {
                 ),
                 { headers: JSON_HEADERS }
             );
-        }
-
-        if (url.pathname !== '/') {
-            return Response.redirect(url.origin + '/', 302);
         }
 
         // CLI（curl/wget/httpie…）Accept 不含 text/html → 純文字 IP
