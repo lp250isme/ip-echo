@@ -468,7 +468,7 @@ export default {
                 return new Response(b64ToBytes(icon.b64), {
                     headers: {
                         'content-type': icon.type,
-                        'cache-control': 'public, max-age=31536000, immutable',
+                        'cache-control': 'public, max-age=604800',
                     },
                 });
             }
@@ -557,10 +557,10 @@ function page(d, headers, lang) {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ip.kvcc.me — ${esc(t.tagline)}</title>
 <meta name="description" content="${esc(t.intro)}">
-<link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="icon" href="/icon.png" type="image/png" media="(prefers-color-scheme: light)">
-<link rel="icon" href="/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico?v=linear" sizes="48x48">
+<link rel="icon" href="/icon.png?v=linear" type="image/png" media="(prefers-color-scheme: light)">
+<link rel="icon" href="/icon-dark.png?v=linear" type="image/png" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=linear">
 <meta name="theme-color" content="#f2f2f7">
 <script>
 /* pre-paint：套主題 + 套已選語言的 lang/dir（減少切過非裝置語系時的版面閃動） */
@@ -709,7 +709,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
 <body>
 <main class="page">
   <header class="topbar fade">
-    <img id="appIcon" src="/icon.png" alt="ip.kvcc.me">
+    <img id="appIcon" src="/icon.png?v=linear" alt="ip.kvcc.me">
     <div class="ctrls">
       <div class="lang-wrap glass-ctl">
         <svg class="globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
