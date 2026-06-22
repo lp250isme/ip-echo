@@ -780,6 +780,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
     <span data-i18n="noLogs">${esc(t.noLogs)}</span> ·
     <a href="https://github.com/lp250isme/ip-echo" target="_blank" rel="noopener noreferrer">GitHub</a>
     · <a href="https://kvcc.me" rel="noopener noreferrer">more by kv</a>
+    <div style="margin-top:6px;opacity:.6">ip-echo ${typeof __GIT_SHA__ !== 'undefined' ? __GIT_SHA__ : 'dev'}</div>
   </footer>
 </main>
 
