@@ -685,11 +685,13 @@ details[open] summary{margin-bottom:12px}
 .map-panel{padding:6px}
 .map{position:relative;height:210px;border-radius:22px;overflow:hidden;background:var(--fill);display:grid;place-items:center}
 .map-fallback{font-size:14px;font-weight:600;color:var(--tint);text-decoration:none}
-.leaflet-container{background:var(--fill)!important;font:inherit}
-.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--panel) 82%,transparent)!important;color:var(--label-3)!important;backdrop-filter:blur(8px)}
-.leaflet-control-attribution a{color:var(--label-2)!important}
-.leaflet-bar a,.leaflet-bar a:hover{background:var(--panel)!important;color:var(--label)!important;border-bottom-color:var(--panel-border)!important}
-.leaflet-touch .leaflet-bar{border-color:var(--panel-border)!important}
+.maplibregl-map{background:var(--fill);font:inherit}
+.maplibregl-ctrl-attrib{font-size:10px;background:color-mix(in srgb,var(--panel) 82%,transparent)!important;color:var(--label-3)!important;backdrop-filter:blur(8px)}
+.maplibregl-ctrl-attrib a{color:var(--label-2)!important}
+.maplibregl-ctrl-group{background:var(--panel)!important;border:1px solid var(--panel-border);box-shadow:none!important}
+.maplibregl-ctrl-group button+button{border-top-color:var(--panel-border)!important}
+:root[data-theme="dark"] .maplibregl-ctrl-group button .maplibregl-ctrl-icon,:root[data-theme="dark"] .maplibregl-ctrl-attrib-button{filter:invert(1)}
+.map-dot{width:19px;height:19px;border-radius:50%;background:#007aff;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 footer{margin-top:36px;text-align:center;font-size:13px;color:var(--label-3)}
 footer a{color:var(--label-2);text-decoration:none}
 footer a:hover{color:var(--tint)}
@@ -894,37 +896,49 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
   });
 });
 
-/* ---------- 地圖視圖（Leaflet + CARTO 主題化圖磚；無座標就沒有 #map、直接跳過。
-   載入失敗則保留 #map 內的 OpenStreetMap 退路連結。圖磚跟著淺/深色切換） ---------- */
+/* ---------- 地圖視圖（MapLibre + OpenFreeMap 向量圖磚，免 key；無座標就沒有 #map、直接跳過。
+   載入失敗（CDN／WebGL）則保留 #map 內的 OpenStreetMap 退路連結。樣式跟著淺/深色切換。
+   2026-11 CARTO basemaps 改成要 API key（每格回「API KEY REQUIRED」）才換掉 Leaflet+CARTO） ---------- */
 (function(){
   var el = document.getElementById('map');
   if (!el) return;
   var lat = parseFloat(el.dataset.lat), lon = parseFloat(el.dataset.lon);
   if (!isFinite(lat) || !isFinite(lon)) return;
-  var V = '1.9.4';
+  var V = '5.24.0';
   var css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = 'https://cdn.jsdelivr.net/npm/leaflet@' + V + '/dist/leaflet.css';
+  css.href = 'https://cdn.jsdelivr.net/npm/maplibre-gl@' + V + '/dist/maplibre-gl.css';
   document.head.appendChild(css);
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/leaflet@' + V + '/dist/leaflet.js';
+  s.src = 'https://cdn.jsdelivr.net/npm/maplibre-gl@' + V + '/dist/maplibre-gl.js';
   s.onload = function(){
-    var L = window.L;
-    if (!L) return; // 退路連結留著
-    el.innerHTML = '';
-    el.style.display = 'block';
+    var M = window.maplibregl;
+    if (!M) return; // 退路連結留著
+    var fallback = el.innerHTML;
+    function styleUrl(){ return 'https://tiles.openfreemap.org/styles/' + (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'positron'); }
     var rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var map = L.map(el, { scrollWheelZoom:false, zoomControl:true, attributionControl:true, zoomAnimation:!rm, fadeAnimation:!rm, markerZoomAnimation:!rm }).setView([lat, lon], 11);
-    function tileUrl(){ return 'https://{s}.basemaps.cartocdn.com/' + (document.documentElement.dataset.theme === 'dark' ? 'dark_all' : 'light_all') + '/{z}/{x}/{y}{r}.png'; }
-    var layer = L.tileLayer(tileUrl(), { maxZoom:19, attribution:'© OpenStreetMap © CARTO' }).addTo(map);
-    L.circleMarker([lat, lon], { radius:8, weight:3, color:'#fff', fillColor:'#007aff', fillOpacity:1 }).addTo(map);
-    window.__mapTheme = function(){ layer.setUrl(tileUrl()); };
+    var map;
+    try {
+      el.innerHTML = '';
+      el.style.display = 'block';
+      // MapLibre 是 512px 圖磚：z10 ≈ 原 Leaflet z11 的視野
+      map = new M.Map({ container:el, style:styleUrl(), center:[lon, lat], zoom:10, scrollZoom:false, dragRotate:false, pitchWithRotate:false, attributionControl:{ compact:true }, fadeDuration: rm ? 0 : 300 });
+    } catch (e) { // 沒 WebGL 等
+      el.innerHTML = fallback;
+      el.style.display = '';
+      return;
+    }
+    map.touchZoomRotate.disableRotation();
+    map.addControl(new M.NavigationControl({ showCompass:false }), 'top-left');
+    var dot = document.createElement('div');
+    dot.className = 'map-dot';
+    new M.Marker({ element:dot }).setLngLat([lon, lat]).addTo(map);
+    window.__mapTheme = function(){ map.setStyle(styleUrl()); };
     /* 地圖在 .panel.fade 裡：0.5s translateY 進場 + backdrop-filter 會在 iOS Safari
-       建出合成圖層，Leaflet 若在動畫進行中 init，圖磚會畫進停格快照、之後不重繪
-       → 空白灰。等進場動畫結束（transform 歸零、圖層落定）再 invalidateSize，讓
-       圖磚重新落到已穩定的圖層；加 rAF + 過 0.5s 的 backstop 多重保險。桌機/Chromium
-       本來就會重繪、不受影響——這是 iOS 專屬修法（headless 驗不出，需實機）。 */
-    var fix = function(){ map.invalidateSize(); };
+       建出合成圖層，地圖若在動畫進行中 init 可能量錯尺寸／畫進停格快照 → 空白。
+       等進場動畫結束再 resize，加 rAF + 過 0.5s 的 backstop 多重保險。
+       （Leaflet 時期的 iOS 專屬修法，換 MapLibre 照留；headless 驗不出，需實機） */
+    var fix = function(){ map.resize(); };
     var panel = el.closest('.panel');
     if (panel) panel.addEventListener('animationend', fix, { once:true });
     requestAnimationFrame(fix);
