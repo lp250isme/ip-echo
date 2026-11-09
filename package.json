@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "test": "node --test",
     "deploy": "wrangler deploy --define __GIT_SHA__:\\\"$(git rev-parse --short HEAD)\\\" && bash scripts/smoke.sh",
     "verify": "bash scripts/smoke.sh"
   },
