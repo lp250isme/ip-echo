@@ -898,12 +898,40 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
 
 /* ---------- 地圖視圖（MapLibre + OpenFreeMap 向量圖磚，免 key；無座標就沒有 #map、直接跳過。
    載入失敗（CDN／WebGL）則保留 #map 內的 OpenStreetMap 退路連結。樣式跟著淺/深色切換。
-   2026-11 CARTO basemaps 改成要 API key（每格回「API KEY REQUIRED」）才換掉 Leaflet+CARTO） ---------- */
+   2026-11 CARTO basemaps 改成要 API key（每格回「API KEY REQUIRED」）才換掉 Leaflet+CARTO）
+
+   ⚠ maplibre-gl（js+css 數百 KB）是本頁最大的載入負擔 → 絕不要無條件載：
+   ① IntersectionObserver：地圖捲進視窗（含 300px 前置）才開始載
+   ② 進視窗後再等 idle（requestIdleCallback / setTimeout 退路），不跟首屏渲染搶主執行緒
+   沒有 IntersectionObserver 的老瀏覽器 → 退回「idle 時載」，行為仍不阻塞首屏。 ---------- */
 (function(){
   var el = document.getElementById('map');
   if (!el) return;
   var lat = parseFloat(el.dataset.lat), lon = parseFloat(el.dataset.lon);
   if (!isFinite(lat) || !isFinite(lon)) return;
+
+  var started = false;
+  function whenIdle(fn){
+    if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 2000 });
+    else setTimeout(fn, 200);
+  }
+  function schedule(){
+    if (started) return;
+    started = true;
+    whenIdle(loadMap);
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { io.disconnect(); schedule(); return; }
+      }
+    }, { rootMargin: '300px 0px' });
+    io.observe(el);
+  } else {
+    schedule();
+  }
+
+function loadMap(){
   var V = '5.24.0';
   var css = document.createElement('link');
   css.rel = 'stylesheet';
@@ -946,6 +974,7 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     setTimeout(fix, 700);
   };
   document.head.appendChild(s);
+}
 })();
 
 /* ---------- viewport-lock（無打包器：jsDelivr 釘 SHA） ---------- */
