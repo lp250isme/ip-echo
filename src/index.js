@@ -706,7 +706,13 @@ details[open] summary{margin-bottom:12px}
 .api-note{margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--label-2)}
 .map-panel{padding:6px}
 .map{position:relative;height:210px;border-radius:22px;overflow:hidden;background:var(--fill);display:grid;place-items:center}
-.map-fallback{font-size:14px;font-weight:600;color:var(--tint);text-decoration:none}
+/* 地圖退路連結：icon 一律 inline SVG（不用 emoji）；地圖是延後載入的，這個連結會
+   在載入前一直當主要操作，熱區照 44px 給好 */
+.map-fallback{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:9999px;
+  font-size:14px;font-weight:600;color:var(--tint);text-decoration:none;touch-action:manipulation}
+.map-fallback .icn{width:17px;height:17px;flex-shrink:0}
+.map-fallback .icn-sm{width:13px;height:13px;flex-shrink:0;color:var(--label-2)}
+[dir="rtl"] .map-fallback .icn-sm{transform:scaleX(-1)}
 .maplibregl-map{background:var(--fill);font:inherit}
 .maplibregl-ctrl-attrib{font-size:10px;background:color-mix(in srgb,var(--panel) 82%,transparent)!important;color:var(--label-3)!important;backdrop-filter:blur(8px)}
 .maplibregl-ctrl-attrib a{color:var(--label-2)!important}
@@ -761,7 +767,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
 
     ${d.latitude && d.longitude ? `<div class="panel fade map-panel">
       <div id="map" class="map" data-lat="${esc(d.latitude)}" data-lon="${esc(d.longitude)}">
-        <a class="map-fallback" href="https://www.openstreetmap.org/?mlat=${esc(d.latitude)}&amp;mlon=${esc(d.longitude)}#map=11/${esc(d.latitude)}/${esc(d.longitude)}" target="_blank" rel="noopener noreferrer">🗺 OpenStreetMap ↗</a>
+        <a class="map-fallback" href="https://www.openstreetmap.org/?mlat=${esc(d.latitude)}&amp;mlon=${esc(d.longitude)}#map=11/${esc(d.latitude)}/${esc(d.longitude)}" target="_blank" rel="noopener noreferrer"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.1 5.55a2 2 0 0 0 1.79 0l3.66-1.83A1 1 0 0 1 21 4.62v12.76a1 1 0 0 1-.55.9l-4.56 2.27a2 2 0 0 1-1.78 0l-4.22-2.1a2 2 0 0 0-1.78 0l-3.66 1.83A1 1 0 0 1 3 19.38V6.62a1 1 0 0 1 .55-.9l4.56-2.27a2 2 0 0 1 1.78 0z"/><path d="M15 5.76v15M9 3.24v15"/></svg>OpenStreetMap<svg class="icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
       </div>
     </div>` : ''}
 
