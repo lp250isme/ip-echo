@@ -45,6 +45,7 @@ const I18N = {
         language: 'Language',
         copy: 'Copy',
         copied: 'Copied ✓',
+        copyFail: 'Copy failed',
         connection: 'Connection',
         timezone: 'Timezone',
         coords: 'Coordinates',
@@ -64,6 +65,7 @@ const I18N = {
         language: '語言',
         copy: '複製',
         copied: '已複製 ✓',
+        copyFail: '複製失敗',
         connection: '連線',
         timezone: '時區',
         coords: '座標',
@@ -83,6 +85,7 @@ const I18N = {
         language: '语言',
         copy: '复制',
         copied: '已复制 ✓',
+        copyFail: '复制失败',
         connection: '连接',
         timezone: '时区',
         coords: '坐标',
@@ -102,6 +105,7 @@ const I18N = {
         language: '言語',
         copy: 'コピー',
         copied: 'コピー済み ✓',
+        copyFail: 'コピー失敗',
         connection: '接続',
         timezone: 'タイムゾーン',
         coords: '座標',
@@ -121,6 +125,7 @@ const I18N = {
         language: '언어',
         copy: '복사',
         copied: '복사됨 ✓',
+        copyFail: '복사 실패',
         connection: '연결',
         timezone: '시간대',
         coords: '좌표',
@@ -140,6 +145,7 @@ const I18N = {
         language: 'Idioma',
         copy: 'Copiar',
         copied: 'Copiado ✓',
+        copyFail: 'Error al copiar',
         connection: 'Conexión',
         timezone: 'Zona horaria',
         coords: 'Coordenadas',
@@ -159,6 +165,7 @@ const I18N = {
         language: 'Langue',
         copy: 'Copier',
         copied: 'Copié ✓',
+        copyFail: 'Échec de la copie',
         connection: 'Connexion',
         timezone: 'Fuseau horaire',
         coords: 'Coordonnées',
@@ -178,6 +185,7 @@ const I18N = {
         language: 'Sprache',
         copy: 'Kopieren',
         copied: 'Kopiert ✓',
+        copyFail: 'Kopieren fehlgeschlagen',
         connection: 'Verbindung',
         timezone: 'Zeitzone',
         coords: 'Koordinaten',
@@ -197,6 +205,7 @@ const I18N = {
         language: 'Lingua',
         copy: 'Copia',
         copied: 'Copiato ✓',
+        copyFail: 'Copia non riuscita',
         connection: 'Connessione',
         timezone: 'Fuso orario',
         coords: 'Coordinate',
@@ -216,6 +225,7 @@ const I18N = {
         language: 'Idioma',
         copy: 'Copiar',
         copied: 'Copiado ✓',
+        copyFail: 'Falha ao copiar',
         connection: 'Conexão',
         timezone: 'Fuso horário',
         coords: 'Coordenadas',
@@ -235,6 +245,7 @@ const I18N = {
         language: 'Язык',
         copy: 'Копировать',
         copied: 'Скопировано ✓',
+        copyFail: 'Не удалось скопировать',
         connection: 'Подключение',
         timezone: 'Часовой пояс',
         coords: 'Координаты',
@@ -254,6 +265,7 @@ const I18N = {
         language: 'اللغة',
         copy: 'نسخ',
         copied: 'تم النسخ ✓',
+        copyFail: 'فشل النسخ',
         connection: 'الاتصال',
         timezone: 'المنطقة الزمنية',
         coords: 'الإحداثيات',
@@ -273,6 +285,7 @@ const I18N = {
         language: 'Dil',
         copy: 'Kopyala',
         copied: 'Kopyalandı ✓',
+        copyFail: 'Kopyalanamadı',
         connection: 'Bağlantı',
         timezone: 'Saat dilimi',
         coords: 'Koordinatlar',
@@ -292,6 +305,7 @@ const I18N = {
         language: 'भाषा',
         copy: 'कॉपी',
         copied: 'कॉपी हो गया ✓',
+        copyFail: 'कॉपी नहीं हुआ',
         connection: 'कनेक्शन',
         timezone: 'टाइम ज़ोन',
         coords: 'निर्देशांक',
@@ -311,6 +325,7 @@ const I18N = {
         language: 'Bahasa',
         copy: 'Salin',
         copied: 'Tersalin ✓',
+        copyFail: 'Gagal menyalin',
         connection: 'Koneksi',
         timezone: 'Zona waktu',
         coords: 'Koordinat',
@@ -330,6 +345,7 @@ const I18N = {
         language: 'Ngôn ngữ',
         copy: 'Sao chép',
         copied: 'Đã sao chép ✓',
+        copyFail: 'Sao chép thất bại',
         connection: 'Kết nối',
         timezone: 'Múi giờ',
         coords: 'Tọa độ',
@@ -349,6 +365,7 @@ const I18N = {
         language: 'ภาษา',
         copy: 'คัดลอก',
         copied: 'คัดลอกแล้ว ✓',
+        copyFail: 'คัดลอกไม่สำเร็จ',
         connection: 'การเชื่อมต่อ',
         timezone: 'เขตเวลา',
         coords: 'พิกัด',
@@ -579,7 +596,7 @@ function page(d, headers, lang) {
   --font-mono:"Geist Mono",ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --ease-out:cubic-bezier(.23,1,.32,1);
   --label:#000;--label-2:rgba(60,60,67,.6);--label-3:rgba(60,60,67,.3);
-  --bg:#f2f2f7;--tint:#007aff;--green:#34c759;--fill:rgba(118,118,128,.12);
+  --bg:#f2f2f7;--tint:#007aff;--green:#34c759;--red:#d7001f;--fill:rgba(118,118,128,.12);
   --panel:rgba(255,255,255,.62);--panel-border:rgba(255,255,255,.75);
   --mesh:radial-gradient(at 0% 0%,hsla(210,100%,90%,.8) 0,transparent 50%),
          radial-gradient(at 100% 0%,hsla(150,75%,86%,.55) 0,transparent 50%),
@@ -588,7 +605,7 @@ function page(d, headers, lang) {
 }
 :root[data-theme="dark"]{
   --label:#fff;--label-2:rgba(235,235,245,.6);--label-3:rgba(235,235,245,.3);
-  --bg:#000;--tint:#0a84ff;--green:#30d158;--fill:rgba(118,118,128,.24);
+  --bg:#000;--tint:#0a84ff;--green:#30d158;--red:#ff6961;--fill:rgba(118,118,128,.24);
   --panel:rgba(28,28,30,.62);--panel-border:rgba(255,255,255,.12);
   --mesh:radial-gradient(at 0% 0%,hsla(220,40%,20%,.8) 0,transparent 60%),
          radial-gradient(at 100% 0%,hsla(160,40%,18%,.55) 0,transparent 50%),
@@ -600,14 +617,14 @@ function page(d, headers, lang) {
    扁平表面（無玻璃 blur / 無大圓角 / 無環境動畫）。滿意留哪個再砍另一套。 */
 :root[data-style="linear"]{
   --label:#1C1D21;--label-2:#6B7280;--label-3:rgba(0,0,0,.26);
-  --bg:#FBFBFC;--tint:#5E6AD2;--green:#3aa76d;--fill:rgba(0,0,0,.05);
+  --bg:#FBFBFC;--tint:#5E6AD2;--green:#3aa76d;--red:#c92a2a;--fill:rgba(0,0,0,.05);
   --panel:#fff;--panel-border:rgba(0,0,0,.09);
   --mesh:radial-gradient(120% 55% at 50% -10%,rgba(94,106,210,.06) 0,transparent 60%);
   color-scheme:light;
 }
 :root[data-style="linear"][data-theme="dark"]{
   --label:#ECEEF1;--label-2:#8A8F98;--label-3:rgba(255,255,255,.28);
-  --bg:#08090a;--tint:#7C7DFF;--green:#3fb98a;--fill:rgba(255,255,255,.06);
+  --bg:#08090a;--tint:#7C7DFF;--green:#3fb98a;--red:#ff7a75;--fill:rgba(255,255,255,.06);
   --panel:#0e0f11;--panel-border:rgba(255,255,255,.09);
   --mesh:radial-gradient(120% 55% at 50% -10%,rgba(124,125,255,.10) 0,transparent 60%);
   color-scheme:dark;
@@ -658,10 +675,15 @@ body{
 .ip-value{flex:1;min-width:0;font-family:var(--font-mono);font-size:clamp(20px,6vw,30px);font-weight:700;
   letter-spacing:-.01em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .ip-place{margin:8px 0 0;font-size:14px;color:var(--label-2)}
-.copy-btn{border:none;border-radius:9999px;min-height:36px;padding:0 16px;font-family:var(--font-ui);
-  font-size:14px;font-weight:600;color:var(--tint);cursor:pointer;white-space:nowrap;
+.copy-btn{position:relative;border:none;border-radius:9999px;min-height:36px;padding:0 16px;font-family:var(--font-ui);
+  font-size:14px;font-weight:600;color:var(--tint);cursor:pointer;white-space:nowrap;touch-action:manipulation;
   background:var(--fill);transition:background-color .15s ease,color .15s ease}
+/* 熱區：視覺維持 36px，用透明 ::after 往上下撐到 44px（Apple HIG / WCAG 目標尺寸）。
+   只往垂直方向長（鈕本身已 >44px 寬），不會蓋到左邊 IP 文字的選取範圍。 */
+.copy-btn::after{content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  height:44px;border-radius:inherit}
 .copy-btn.done{color:var(--green)}
+.copy-btn.fail{color:var(--red)}
 dl{margin:0;display:flex;flex-direction:column;gap:2px}
 .row{display:flex;align-items:baseline;gap:14px;padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--label-3) 26%,transparent)}
 .row:last-child{border-bottom:none}
@@ -732,7 +754,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{
     <div class="panel fade">
       <div class="ip-display">
         <span class="ip-value" id="ipValue">${esc(d.ip)}</span>
-        <button class="copy-btn" data-copy="${esc(d.ip)}"><span data-i18n="copy">${esc(t.copy)}</span></button>
+        <button class="copy-btn" data-copy="${esc(d.ip)}" aria-live="polite"><span data-i18n="copy">${esc(t.copy)}</span></button>
       </div>
       ${place ? `<p class="ip-place">${esc(place)}</p>` : ''}
     </div>
@@ -875,24 +897,67 @@ if (styleBtn) styleBtn.addEventListener('click', function(){
 });
 applyStyle();
 
-/* ---------- 複製（換字鈕：replaceChildren 換節點，不掛 transform/opacity 過渡） ---------- */
+/* ---------- 複製（換字鈕：replaceChildren 換節點，不掛 transform/opacity 過渡）
+   失敗不能無聲：Clipboard API 不在時（非 https／舊 Safari／權限被拒）先試 execCommand，
+   全失敗就把鈕轉紅顯示「複製失敗」，並把 IP 文字選起來讓使用者手動複製。 ---------- */
+function legacyCopy(text){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+function selectIp(){
+  const el = document.getElementById('ipValue');
+  if (!el || !window.getSelection) return;
+  try {
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  } catch (e) {}
+}
 document.querySelectorAll('.copy-btn').forEach(btn => {
   let timer;
-  btn.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(btn.dataset.copy); } catch { return; }
+  function setLabel(key){
     const span = document.createElement('span');
-    span.setAttribute('data-i18n', 'copied');
-    span.textContent = dict().copied;
+    span.setAttribute('data-i18n', key);
+    span.textContent = dict()[key];
     btn.replaceChildren(span);
-    btn.classList.add('done');
+  }
+  btn.addEventListener('click', async () => {
+    const text = btn.dataset.copy;
+    let ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch (e) {}
+    if (!ok) ok = legacyCopy(text);
+
+    btn.classList.remove('done', 'fail');
+    if (ok) {
+      setLabel('copied');
+      btn.classList.add('done');
+    } else {
+      setLabel('copyFail');
+      btn.classList.add('fail');
+      selectIp(); // 選起來＝使用者至少能手動複製
+    }
     clearTimeout(timer);
     timer = setTimeout(() => {
-      const s = document.createElement('span');
-      s.setAttribute('data-i18n', 'copy');
-      s.textContent = dict().copy;
-      btn.replaceChildren(s);
-      btn.classList.remove('done');
-    }, 1600);
+      setLabel('copy');
+      btn.classList.remove('done', 'fail');
+    }, ok ? 1600 : 2600);
   });
 });
 
